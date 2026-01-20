@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Conflict Lens</title>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --panel: #ffffff;
+        --ink: #0b0b0f;
+        --muted: #556173;
+        --line: #d9e0ea;
+        --soft: #eef2f7;
+        --accent: #2f6feb;
+        --warn: #b54708;
+        --good: #1a7f37;
+        --shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+          Arial;
+        color: var(--ink);
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        min-height: 100%;
+        background: var(--bg);
+      }
+
+      .wrap {
+        padding: 14px;
+        box-sizing: border-box;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .hdr {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, #ffffff, #fbfcfe);
+      }
+
+      .hdr-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .title {
+        font-size: 14px;
+        font-weight: 750;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .btn {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-weight: 650;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .btn.primary {
+        border-color: rgba(47, 111, 235, 0.35);
+        background: rgba(47, 111, 235, 0.08);
+        color: #1547b8;
+      }
+
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .body {
+        padding: 14px 16px 16px;
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        min-width: 240px;
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      @media (max-width: 760px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--soft);
+      }
+
+      .panel-h {
+        padding: 10px 12px;
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .panel-h strong {
+        font-size: 12px;
+      }
+
+      .panel-b {
+        padding: 10px 12px;
+        background: var(--soft);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+      }
+
+      thead th {
+        text-align: left;
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 750;
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      tbody td {
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+        font-size: 12.5px;
+        vertical-align: top;
+      }
+
+      tbody tr:hover {
+        background: #f8fbff;
+        cursor: pointer;
+      }
+
+      tbody tr.selected {
+        background: rgba(47, 111, 235, 0.08);
+      }
+
+      .badge {
+        font-size: 11px;
+        font-weight: 750;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fff;
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .badge.warn {
+        color: var(--warn);
+        border-color: rgba(181, 71, 8, 0.35);
+        background: rgba(181, 71, 8, 0.06);
+      }
+
+      .badge.good {
+        color: var(--good);
+        border-color: rgba(26, 127, 55, 0.3);
+        background: rgba(26, 127, 55, 0.06);
+      }
+
+      .pill {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        background: #fff;
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 8px 10px;
+        align-items: start;
+        margin-bottom: 10px;
+      }
+
+      .k {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+
+      .v {
+        font-size: 12.5px;
+        font-weight: 650;
+      }
+
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+      }
+
+      select {
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <div id="root"></div>
+    </div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <script>
+      const e = React.createElement;
+
+      function clamp01(x) {
+        if (typeof x !== "number") return 0;
+        if (x < 0) return 0;
+        if (x > 1) return 1;
+        return x;
+      }
+
+      function severityBadge(sev) {
+        const s = clamp01(sev);
+        if (s >= 0.7) return { cls: "badge warn", txt: "high" };
+        if (s >= 0.35) return { cls: "badge warn", txt: "medium" };
+        return { cls: "badge good", txt: "low" };
+      }
+
+      function getToolOutput() {
+        const o = (window.openai && window.openai.toolOutput) || null;
+        if (o) return o;
+        return window.__CONFLICT_LENS_FALLBACK__ || null;
+      }
+
+      function App() {
+        const [topic, setTopic] = React.useState("goldfish memory");
+        const [running, setRunning] = React.useState(false);
+        const [report, setReport] = React.useState(getToolOutput());
+        const [selected, setSelected] = React.useState(null);
+
+        const [sourceChoice, setSourceChoice] = React.useState(
+          window.localStorage.getItem("conflict_lens_found_via") || ""
+        );
+        const [sourceSaved, setSourceSaved] = React.useState(
+          Boolean(window.localStorage.getItem("conflict_lens_found_via"))
+        );
+
+        React.useEffect(() => {
+          const interval = setInterval(() => {
+            const o = getToolOutput();
+            if (!o) return;
+            setReport(o);
+          }, 250);
+
+          return () => clearInterval(interval);
+        }, []);
+
+        async function run() {
+          if (!window.openai || !window.openai.callTool) return;
+          setRunning(true);
+          setSelected(null);
+
+          try {
+            const out = await window.openai.callTool("discover_conflicting_claims", {
+              topic,
+              depth: "academic",
+              max_claims: 18,
+              strict_no_sources: true
+            });
+
+            if (out) window.__CONFLICT_LENS_FALLBACK__ = out;
+
+            const next = getToolOutput() || out;
+            if (next) setReport(next);
+          } finally {
+            setRunning(false);
+          }
+        }
+
+        async function saveHowFound() {
+          if (!sourceChoice) return;
+
+          window.localStorage.setItem("conflict_lens_found_via", sourceChoice);
+          setSourceSaved(true);
+
+          if (window.openai && window.openai.callTool) {
+            await window.openai.callTool("track_attribution", {
+              found_via: sourceChoice
+            }).catch(() => {});
+          }
+        }
+
+        function fullscreen() {
+          if (!window.openai || !window.openai.requestDisplayMode) return;
+          window.openai.requestDisplayMode({ mode: "fullscreen" });
+        }
+
+        const conflicts = (report && report.conflicts) || [];
+        const claims = (report && report.claims) || [];
+        const claimById = new Map(claims.map((c) => [c.claim_id, c]));
+
+        const selectedConflict = selected
+          ? conflicts.find((c) => c.conflict_id === selected)
+          : null;
+
+        function renderDetail(conflict) {
+          if (!conflict) {
+            return e(
+              "div",
+              { className: "panel-b" },
+              e(
+                "div",
+                { className: "hint" },
+                "Select a conflict to see details."
+              )
+            );
+          }
+
+          const a = claimById.get(conflict.claim_a) || conflict.claim_a_obj || null;
+          const b = claimById.get(conflict.claim_b) || conflict.claim_b_obj || null;
+          const badge = severityBadge(conflict.severity);
+
+          return e(
+            "div",
+            { className: "panel-b" },
+            e(
+              "div",
+              { className: "kv" },
+              e("div", { className: "k" }, "dimension"),
+              e("div", { className: "v" }, conflict.dimension || ""),
+              e("div", { className: "k" }, "type"),
+              e("div", { className: "v" }, conflict.conflict_type || ""),
+              e("div", { className: "k" }, "severity"),
+              e("div", { className: "v" }, e("span", { className: badge.cls }, badge.txt))
+            ),
+            e("div", { className: "k", style: { marginTop: "10px" } }, "explanation"),
+            e("div", { className: "mono" }, conflict.explanation || ""),
+            e("div", { className: "k", style: { marginTop: "10px" } }, "researcher warning"),
+            e("div", { className: "mono" }, conflict.researcher_warning || ""),
+            e("div", { className: "k", style: { marginTop: "10px" } }, "claim a"),
+            e("div", { className: "mono" }, a ? a.assertion : ""),
+            e("div", { className: "k", style: { marginTop: "10px" } }, "claim b"),
+            e("div", { className: "mono" }, b ? b.assertion : "")
+          );
+        }
+
+        const conflictCount =
+          (report && report.summary && report.summary.conflict_count) || conflicts.length || 0;
+
+        return e(
+          "div",
+          { className: "card" },
+          e(
+            "div",
+            { className: "hdr" },
+            e(
+              "div",
+              { className: "hdr-left" },
+              e("div", { className: "title" }, "Conflict Lens"),
+              e(
+                "div",
+                { className: "subtitle" },
+                report && report.topic
+                  ? "Conflict signal report for: " + report.topic
+                  : "Find contradictory claims inside model knowledge"
+              )
+            ),
+            e(
+              "div",
+              { className: "actions" },
+              e(
+                "span",
+                { className: conflictCount > 0 ? "badge warn" : "badge good" },
+                conflictCount > 0 ? "conflicts: " + conflictCount : "no conflicts yet"
+              ),
+              e(
+                "button",
+                { className: "btn", onClick: fullscreen, type: "button" },
+                "Fullscreen"
+              )
+            )
+          ),
+          e(
+            "div",
+            { className: "body" },
+            !sourceSaved
+              ? e(
+                  "div",
+                  { className: "panel", style: { marginBottom: "12px" } },
+                  e(
+                    "div",
+                    { className: "panel-h" },
+                    e("strong", null, "One question (for analytics)"),
+                    e("span", { className: "pill" }, "optional")
+                  ),
+                  e(
+                    "div",
+                    { className: "panel-b" },
+                    e("div", { className: "hint", style: { marginBottom: "8px" } }, "How did you find this app?"),
+                    e(
+                      "div",
+                      { className: "row" },
+                      e(
+                        "select",
+                        {
+                          value: sourceChoice,
+                          onChange: (ev) => setSourceChoice(ev.target.value)
+                        },
+                        e("option", { value: "" }, "Select…"),
+                        e("option", { value: "directory" }, "ChatGPT directory"),
+                        e("option", { value: "chatgpt_suggested" }, "ChatGPT suggested it"),
+                        e("option", { value: "link" }, "Link"),
+                        e("option", { value: "friend" }, "Friend"),
+                        e("option", { value: "other" }, "Other")
+                      ),
+                      e(
+                        "button",
+                        { className: "btn primary", onClick: saveHowFound, disabled: !sourceChoice, type: "button" },
+                        "Save"
+                      )
+                    )
+                  )
+                )
+              : null,
+            e(
+              "div",
+              { className: "row" },
+              e("input", {
+                type: "text",
+                value: topic,
+                onChange: (ev) => setTopic(ev.target.value),
+                placeholder: "e.g. goldfish memory, vitamin D mortality, SSRIs efficacy"
+              }),
+              e(
+                "button",
+                {
+                  className: "btn primary",
+                  onClick: run,
+                  disabled: running || !window.openai || !window.openai.callTool,
+                  type: "button"
+                },
+                running ? "Running..." : "Run"
+              )
+            ),
+            e(
+              "div",
+              { className: "hint" },
+              "Signals contradictions inside the model's learned literature. Treat as a warning signal, not adjudication."
+            ),
+            e(
+              "div",
+              { className: "split" },
+              e(
+                "div",
+                { className: "panel" },
+                e(
+                  "div",
+                  { className: "panel-h" },
+                  e("strong", null, "Ranked conflicts"),
+                  e("span", { className: "pill" }, "click row for details")
+                ),
+                e(
+                  "div",
+                  { className: "panel-b", style: { padding: 0 } },
+                  e(
+                    "table",
+                    null,
+                    e(
+                      "thead",
+                      null,
+                      e(
+                        "tr",
+                        null,
+                        e("th", null, "dimension"),
+                        e("th", null, "type"),
+                        e("th", null, "severity")
+                      )
+                    ),
+                    e(
+                      "tbody",
+                      null,
+                      conflicts.map((c) => {
+                        const badge = severityBadge(c.severity);
+                        const selectedRow = selected === c.conflict_id;
+                        return e(
+                          "tr",
+                          {
+                            key: c.conflict_id,
+                            className: selectedRow ? "selected" : "",
+                            onClick: () => setSelected(c.conflict_id)
+                          },
+                          e("td", null, c.dimension || ""),
+                          e("td", null, c.conflict_type || ""),
+                          e("td", null, e("span", { className: badge.cls }, badge.txt))
+                        );
+                      })
+                    )
+                  )
+                )
+              ),
+              e(
+                "div",
+                { className: "panel" },
+                e(
+                  "div",
+                  { className: "panel-h" },
+                  e("strong", null, "Details"),
+                  selectedConflict ? e("span", { className: "pill" }, selectedConflict.conflict_id) : null
+                ),
+                renderDetail(selectedConflict)
+              )
+            )
+          )
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(e(App));
+    </script>
+  </body>
+</html>
